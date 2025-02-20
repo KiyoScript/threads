@@ -36,6 +36,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "c151bbb1-0eab-4310-8db1-c3c3d3e0af6c"
+      }
+    },
+    "owner": "kiyoscript"
   }
 }
