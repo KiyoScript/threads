@@ -1,12 +1,20 @@
 import "@/global.css";
 
 import { Theme, ThemeProvider, DefaultTheme, DarkTheme } from "@react-navigation/native";
-import { Stack } from "expo-router";
+
 import { StatusBar } from "expo-status-bar";
 import * as React from "react";
-import { Platform } from "react-native";
+import { Platform, LogBox } from "react-native";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
+
+
+import { Slot } from "expo-router";
+import { useEffect } from "react";
+import { useAuthStore } from "@/store/useAuthStore";
+
+LogBox.ignoreAllLogs(true); //ignore all warnings
+
 const LIGHT_THEME: Theme = {
   ...DefaultTheme,
   colors: NAV_THEME.light,
@@ -37,14 +45,19 @@ export default function RootLayout() {
     hasMounted.current = true;
   }, []);
 
-  if (!isColorSchemeLoaded) {
-    return null;
-  }
+  const { checkAuth } = useAuthStore();
+  const memoizedCheckAuth = React.useCallback(checkAuth, [checkAuth, useAuthStore]);
+
+  useEffect(() => {
+    if (isColorSchemeLoaded) {
+      memoizedCheckAuth();
+    }
+  }, [isColorSchemeLoaded, memoizedCheckAuth]);
 
   return (
     <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
       <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-      <Stack />
+      <Slot />
     </ThemeProvider>
   );
 }
