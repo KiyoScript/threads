@@ -48,7 +48,6 @@ export default function SignUp() {
       await signUp(username, email, password);
       router.replace("/");
     } catch (error: any) {
-      console.log(error.response?.data)
       if (error.response?.data?.status?.errors) {
         setUsernameError(error.response.data.status.errors[1] || "");
         setEmailError(error.response.data.status.errors[0] || "");

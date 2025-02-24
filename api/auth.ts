@@ -23,7 +23,16 @@ export const signUpUser = async (username: string, email: string, password: stri
         "email":  email,
         "password": password },
     });
-    return response.data;
+
+    const token = response.headers.authorization;
+    const message = response.data.status.message
+    const user = response.data.status.data;
+
+    if (token) {
+      await AsyncStorage.setItem("token", token);
+    }
+
+    return { message, token, user };
   } catch (error) {
     console.error("Sign-up failed:", error);
     throw error;
@@ -39,11 +48,13 @@ export const signInUser = async (email_or_username: string, password: string) =>
     });
 
     const token = response.headers.authorization;
+    const user = response.data.status.data;
+    const message = response.data.status.message;
+
     if (token) {
       await AsyncStorage.setItem("token", token);
     }
-
-    return { token, user: response.data };
+    return { message, token, user };
   } catch (error) {
     console.error("Sign-in failed:", error);
     throw error;
@@ -52,21 +63,29 @@ export const signInUser = async (email_or_username: string, password: string) =>
 
 export const signOutUser = async () => {
   try {
+    const headers = await getAuthHeaders();
+    if (!headers?.Authorization) throw new Error("No token found");
+
+    const response = await api.delete("/users/sign_out", { headers });
+
     await AsyncStorage.removeItem("token");
+
+    return { message: response.data.status.message };
   } catch (error) {
     console.error("Sign-out failed:", error);
     throw error;
   }
 };
 
+
 export const checkUserAuth = async () => {
+  const headers = await getAuthHeaders();
+  if (!headers?.Authorization) return { message: "Unauthorized Access" };
   try {
-    const headers = await getAuthHeaders();
-    if (!headers?.Authorization) throw new Error("No token found");
     const response = await api.get("/users/me", { headers });
     return { user: response.data.user };
   } catch (error) {
     console.error("Auth check failed:", error);
-    throw error;
+    return { message: "Unauthorized Access" };
   }
 };

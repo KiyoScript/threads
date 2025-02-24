@@ -1,7 +1,7 @@
 import { useColorScheme } from "@/lib/useColorScheme";
 import { router } from "expo-router";
-import { useState } from "react";
-import { View, TouchableOpacity } from "react-native";
+import { useState, useEffect } from "react";
+import { ActivityIndicator, View, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuthStore } from "@/store/useAuthStore";
@@ -10,28 +10,50 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 
+import FlashMessage, { showMessage } from "react-native-flash-message";
 
 export default function SignIn() {
   const { isDarkColorScheme } = useColorScheme();
-  const { signIn } = useAuthStore();
+  const { signIn, signOutMessage, checkUserAuthMessage, clearMessage } = useAuthStore();
 
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
 
   const [emailOrUsernameError, setEmailOrUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const message = signOutMessage || checkUserAuthMessage;
+  const messageType = signOutMessage ? "success" : "info";
+  useEffect(() => {
+    if (message) {
+      showMessage({
+        message: message,
+        description: "",
+        type: messageType,
+        icon: "success",
+        duration: 3000,
+      });
+      clearMessage();
+    }
+  }, [message, messageType, clearMessage]);
+
+
 
   const handleSignIn = async () => {
     setEmailOrUsernameError("");
     setPasswordError("");
+    setLoading(true);
 
     if (!emailOrUsername.trim()) {
       setEmailOrUsernameError("Email or Username is required.");
+      setLoading(false);
       return;
     }
 
     if (!password.trim()) {
       setPasswordError("Password is required.");
+      setLoading(false);
       return;
     }
 
@@ -39,12 +61,18 @@ export default function SignIn() {
       await signIn(emailOrUsername, password);
       router.replace("/");
     } catch (error: any) {
-      if (error.response?.data?.errors) {
-        setEmailOrUsernameError(error.response.data.errors.emailOrUsername || "");
-        setPasswordError(error.response.data.status.message || "");
-      } else {
-        setPasswordError("Invalid credentials.");
-      }
+      const errorMessage = error.response?.data?.status?.message || "Invalid credentials.";
+      showMessage({
+        message: "Error",
+        description: errorMessage,
+        type: "danger",
+        icon: "danger",
+        duration: 3000,
+      });
+
+      setPasswordError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -78,13 +106,19 @@ export default function SignIn() {
               aria-errormessage="inputError"
           />
 
-
           {passwordError ? (<Text className="text-red-500 text-sm"> {passwordError} </Text>) : null}
         </View>
 
-        <View className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
-          <Button onPress={handleSignIn}>
-            <Text>Sign In</Text>
+        <View className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm flex items-center">
+          <Button onPress={handleSignIn} disabled={loading}>
+            {loading ? (
+              <View className="flex-row items-center justify-center gap-2">
+                <Text>Signing In</Text>
+                <ActivityIndicator size="small" color="white" />
+              </View>
+            ) : (
+              <Text>Sign In</Text>
+            )}
           </Button>
         </View>
 
@@ -93,6 +127,8 @@ export default function SignIn() {
             <Text className="text-blue-500">Don't have an account? Sign Up</Text>
           </TouchableOpacity>
         </View>
+
+        <FlashMessage position="top" />
       </SafeAreaView>
     </SafeAreaProvider>
   );
