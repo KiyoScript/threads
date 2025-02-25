@@ -1,6 +1,6 @@
 import { useColorScheme } from "@/lib/useColorScheme";
 import { router } from "expo-router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ActivityIndicator, View, TouchableOpacity } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
@@ -10,11 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Button } from "@/components/ui/button";
 
-import FlashMessage, { showMessage } from "react-native-flash-message";
-
 export default function SignIn() {
   const { isDarkColorScheme } = useColorScheme();
-  const { signIn, signOutMessage, checkUserAuthMessage, clearMessage } = useAuthStore();
+  const { signIn } = useAuthStore();
 
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -22,21 +20,6 @@ export default function SignIn() {
   const [emailOrUsernameError, setEmailOrUsernameError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const message = signOutMessage || checkUserAuthMessage;
-  const messageType = signOutMessage ? "success" : "info";
-  useEffect(() => {
-    if (message) {
-      showMessage({
-        message: message,
-        description: "",
-        type: messageType,
-        icon: "success",
-        duration: 3000,
-      });
-      clearMessage();
-    }
-  }, [message, messageType, clearMessage]);
 
 
 
@@ -62,13 +45,6 @@ export default function SignIn() {
       router.replace("/");
     } catch (error: any) {
       const errorMessage = error.response?.data?.status?.message || "Invalid credentials.";
-      showMessage({
-        message: "Error",
-        description: errorMessage,
-        type: "danger",
-        icon: "danger",
-        duration: 3000,
-      });
 
       setPasswordError(errorMessage);
     } finally {
@@ -109,12 +85,11 @@ export default function SignIn() {
           {passwordError ? (<Text className="text-red-500 text-sm"> {passwordError} </Text>) : null}
         </View>
 
-        <View className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm flex items-center">
+        <View className="mt-5 sm:mx-auto sm:w-full sm:max-w-sm">
           <Button onPress={handleSignIn} disabled={loading}>
             {loading ? (
-              <View className="flex-row items-center justify-center gap-2">
-                <Text>Signing In</Text>
-                <ActivityIndicator size="small" color="white" />
+              <View className="flex-row items-center justify-center sm:mx-auto sm:w-full sm:max-w-sm">
+                <ActivityIndicator size="small" color="black" />
               </View>
             ) : (
               <Text>Sign In</Text>
@@ -128,7 +103,6 @@ export default function SignIn() {
           </TouchableOpacity>
         </View>
 
-        <FlashMessage position="top" />
       </SafeAreaView>
     </SafeAreaProvider>
   );
