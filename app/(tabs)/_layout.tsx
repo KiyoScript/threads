@@ -1,27 +1,14 @@
-import { Tabs, Redirect } from "expo-router";
-import * as React from "react";
 import { useEffect } from "react";
+import { Tabs } from "expo-router";
+import { House } from "@/lib/icons/House";
 import { useAuthStore } from "@/store/useAuthStore";
 
-import { Text } from "@/components/ui/text";
-import { House } from "@/lib/icons/House";
-
-
 export default function TabLayout() {
-  const { user, loading, checkAuth } = useAuthStore();
-  const memoizedCheckAuth = React.useCallback(checkAuth, [checkAuth, useAuthStore]);
+  const { checkAuth } = useAuthStore();
 
   useEffect(() => {
-    memoizedCheckAuth();
-  }, [memoizedCheckAuth]);
-
-  if (loading) {
-    return <Text>Loading...</Text>;
-  }
-
-  if (!user) {
-    return <Redirect href="/sign-in" />;
-  }
+    checkAuth();
+  }, [checkAuth]);
 
   return (
     <Tabs screenOptions={{ headerShown: false }}>
@@ -35,4 +22,3 @@ export default function TabLayout() {
     </Tabs>
   );
 }
-

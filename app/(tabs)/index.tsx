@@ -1,31 +1,12 @@
-import { useEffect } from "react";
 import { useColorScheme } from "@/lib/useColorScheme";
 import { View, Text } from "react-native";
 import { useAuthStore } from "@/store/useAuthStore";
 import { router } from "expo-router";
 import { Button } from "@/components/ui/button";
 
-import FlashMessage, { showMessage } from "react-native-flash-message";
-
 export default function Index() {
   const { isDarkColorScheme } = useColorScheme();
-  const { user, signOut, signInMessage, signUpMessage, clearMessage } = useAuthStore();
-
-  const message = signInMessage ?? signUpMessage;
-  useEffect(() => {
-
-
-    if (message) {
-      showMessage({
-        message: message,
-        description: "",
-        type: "success",
-        icon: "success",
-        duration: 3000,
-      });
-      clearMessage();
-    }
-  }, [message, clearMessage]);
+  const { user, signOut } = useAuthStore();
 
   const handleLogout = async () => {
     await signOut();
@@ -41,7 +22,6 @@ export default function Index() {
       <Button className="mt-4" onPress={handleLogout}>
         <Text>Sign Out</Text>
       </Button>
-      <FlashMessage position="top" />
     </View>
   );
 }
