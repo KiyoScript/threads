@@ -1,18 +1,16 @@
 import "@/global.css";
 
+import * as React from "react";
+import { StatusBar } from "expo-status-bar";
+import { Slot } from "expo-router";
+
+import { Platform, LogBox } from "react-native";
+import FlashMessage from "react-native-flash-message";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Theme, ThemeProvider, DefaultTheme, DarkTheme } from "@react-navigation/native";
 
-import { StatusBar } from "expo-status-bar";
-import * as React from "react";
-import { Platform, LogBox } from "react-native";
 import { NAV_THEME } from "@/lib/constants";
 import { useColorScheme } from "@/lib/useColorScheme";
-
-import FlashMessage from "react-native-flash-message";
-
-import { Slot } from "expo-router";
-import { useEffect } from "react";
-import { useAuthStore } from "@/store/useAuthStore";
 
 LogBox.ignoreAllLogs(true); //ignore all warnings
 
@@ -26,7 +24,6 @@ const DARK_THEME: Theme = {
 };
 
 export { ErrorBoundary } from "expo-router"; // Catch any errors thrown by the Layout component.
-
 
 export default function RootLayout() {
   const hasMounted = React.useRef(false);
@@ -46,21 +43,18 @@ export default function RootLayout() {
     hasMounted.current = true;
   }, []);
 
-  const { checkAuth } = useAuthStore();
-  const memoizedCheckAuth = React.useCallback(checkAuth, [checkAuth, useAuthStore]);
-
-  useEffect(() => {
-    if (isColorSchemeLoaded) {
-      memoizedCheckAuth();
-    }
-  }, [isColorSchemeLoaded, memoizedCheckAuth]);
+  if (!isColorSchemeLoaded) {
+    return null;
+  }
 
   return (
-    <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
-      <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
-      <Slot />
-      <FlashMessage position="top" />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider value={isDarkColorScheme ? DARK_THEME : LIGHT_THEME}>
+        <StatusBar style={isDarkColorScheme ? "light" : "dark"} />
+        <Slot />
+        <FlashMessage position="top" />
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
